@@ -18,63 +18,53 @@ public class BookController {
     @Autowired
     private BookRepo repository;
 
+
     @PostMapping("/addBook")
     public String saveBook(@RequestBody Book book) {
-            String saved="";
-            boolean exists = repository.existsById(book.getId());
 
-            if(!exists) {
+            if(!repository.existsById(book.getId())) {
                 repository.save(book);
-                saved = "New value added with Book Id : "+ book.getId();
+                return "New value added with Book Id : "+ book.getId();
             }
-            else {
-                saved = "This value is already added ";
-            }
-             return saved;
+            return  "This Book was already added ";
     }
 
     @GetMapping("/findAllBooks")
-    public List<Book> getBooks() {
+    public ResponseEntity <?> getBooks() {
 
-            return repository.findAll();
+        return ResponseEntity .ok( repository.findAll());
+
     }
 
-    @GetMapping("/getBooks/{id}")
+    @GetMapping("/getBook/{id}")
     public ResponseEntity<Object> getBook(@PathVariable int id) {
-           Optional<Book> book = repository.findById(id);
 
-           if(book.isPresent()) {
-                  Book book1 =book.get();
-                  return new ResponseEntity<>(book1, HttpStatus.OK);
-          }
-                  return new ResponseEntity<>("No Books Available in this Id", HttpStatus.NOT_FOUND);
+            if(repository.findById(id).isPresent()){
+                 Optional<Book> book= repository.findById(id);
+                 return new ResponseEntity<>(book, HttpStatus.OK);
+             }
+             return new ResponseEntity<>("No Books Available in this Id", HttpStatus.NOT_FOUND);
 
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Object> deleteBook(@PathVariable int id) {
-           Optional<Book> isRemoved= repository.findById(id);
 
-           if (isRemoved.isPresent()) {
-               repository.deleteById(id);
+            if (repository.findById(id).isPresent()) {
+                 repository.deleteById(id);
                  return new ResponseEntity<>("Record is deleted with Book Id :" +id,HttpStatus.OK);
-           }
-           else {
-                 return new ResponseEntity<>("No Record is available in this Id ", HttpStatus.NOT_FOUND);
-           }
+            }
+            return new ResponseEntity<>("No Record is available in this Id ", HttpStatus.NOT_FOUND);
     }
 
-    @PutMapping("/edit/{id}")
-    public ResponseEntity<Object> editBook(@PathVariable int id ) {
-           Optional<Book> isSelected = repository.findById(id);
+    @PutMapping("/edit")
+    public ResponseEntity<Object> editBook(@RequestBody Book book) {
 
-           if (!isSelected.isPresent()) {
-               Book book2 = isSelected.get();
-                                    // repository.save(book2);
-                return new ResponseEntity<>(book2, HttpStatus.OK);
+           if (repository.findById(book.getId()).isPresent()) {
+                 repository.save(book);
+                 return new ResponseEntity<>(book, HttpStatus.OK);
            }
-           else{
-                 return new ResponseEntity<>("No Record is available in this Id ", HttpStatus.NOT_FOUND);
-           }
+           return new ResponseEntity<>("No Record is available in this Id ", HttpStatus.NOT_FOUND);
+
     }
 }
